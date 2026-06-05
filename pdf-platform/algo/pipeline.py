@@ -20,6 +20,7 @@ from algo.converters import (
     convert_to_xlsx,
     convert_to_html,
     convert_to_jpg,
+    convert_to_png,
 )
 
 logger = logging.getLogger(__name__)
@@ -31,6 +32,7 @@ _FORMAT_MAP = {
     "xlsx": convert_to_xlsx,
     "html": convert_to_html,
     "jpg": convert_to_jpg,
+    "png": convert_to_png,
 }
 
 

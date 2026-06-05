@@ -3,6 +3,7 @@ from .to_pptx_converter import convert as convert_to_pptx
 from .to_xlsx_converter import convert as convert_to_xlsx
 from .to_html_converter import convert as convert_to_html
 from .to_jpg_converter import convert as convert_to_jpg
+from .to_png_converter import convert as convert_to_png
 
 __all__ = [
     "convert_to_docx",
@@ -10,4 +11,5 @@ __all__ = [
     "convert_to_xlsx",
     "convert_to_html",
     "convert_to_jpg",
+    "convert_to_png",
 ]
