@@ -98,13 +98,15 @@
 - Nginx config (API proxy + SPA static serving)
 - Deployment script (init.sh)
 
-### ❌ Gaps to Fix
+### ✅ All Gaps Fixed (as of 2025)
 
-1. **OpenClaw Agent Team** — This document (agent definitions)
-2. **`.env` file** — Need to create from `.env.example`
-3. **Git repo** — Not initialized
-4. **Frontend `next.config.js`** — Need to verify/configure for static export
-5. **Alembic migrations** — Not set up (DB uses create_all for now, fine for MVP)
-6. **Password mismatch** — docker-compose says `pdfpass` but base config has `postgres`
-7. **`to_xlsx_converter.py` logic bug** — Double-call to `page.find_tables()`
-8. **Integration test** — Verify end-to-end
+1. ✅ **OpenClaw Agent Team** — TEAM.md with roles/communication protocol
+2. ✅ **`.env` file** — Created from `.env.example`
+3. ✅ **Git repo** — Initialized (master branch, clean)
+4. ✅ **Frontend config** — Switched to `output: 'standalone'`, all TS errors fixed, builds clean
+5. ✅ **Alembic migrations** — Async Alembic scaffold created (env.py, ini, script.py.mako, versions/ dir)
+6. ✅ **Dockerfile.frontend** — Rewritten for standalone output (Node.js server, not nginx static)
+7. ✅ **`to_xlsx_converter.py`** — `page.find_tables()` double-call bug fixed (materialized to `table_list`)
+8. ✅ **Download/task endpoint UUID bug** — `uuid.UUID` vs `String(36)` type mismatch fixed
+9. ✅ **Frontend ParamsPanel** — All 4 sub-components rewritten to use nested API types
+10. ✅ **Local dev script** — `dev.sh` for running without Docker

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import os
+import shutil
 import tempfile
 from typing import Optional
 
@@ -50,6 +51,10 @@ def convert(
     Returns:
         输出文件路径（单页时）或输出目录路径（多页时）
 
+    Notes:
+        当 output_dir 由本函数创建的临时目录时,异常退出会自动清理该目录。
+        调用方传入的 params 不会被修改（内部使用 model_copy 创建副本）。
+
     Raises:
         FileNotFoundError: PDF 文件不存在
         ValueError: 不支持的目标格式
@@ -67,7 +72,8 @@ def convert(
     if params is None:
         params = ConvertParams()
 
-    params.output_format = target_format
+    # 避免修改调用方传入的可变对象（model_copy 创建 pydantic v2 副本）
+    params = params.model_copy(update={"output_format": target_format})
 
     if output_dir is None:
         output_dir = tempfile.mkdtemp(prefix="pdf_convert_")
@@ -82,17 +88,23 @@ def convert(
         params.end_page or "end",
     )
 
-    # 阶段 1: 解析 PDF
-    parser = PDFParser(params)
-    pdf_doc = parser.parse(file_path)
-    logger.info("Parsed: %d pages", pdf_doc.total_pages)
+    try:
+        # 阶段 1: 解析 PDF
+        parser = PDFParser(params)
+        pdf_doc = parser.parse(file_path)
+        logger.info("Parsed: %d pages", pdf_doc.total_pages)
 
-    # 阶段 2: 调用具体转换器
-    converter_fn = _FORMAT_MAP[target_format]
-    output_path = converter_fn(file_path, params, output_dir)
+        # 阶段 2: 调用具体转换器（各转换器自行重新解析 PDF）
+        converter_fn = _FORMAT_MAP[target_format]
+        output_path = converter_fn(file_path, params, output_dir)
 
-    logger.info("Conversion complete: %s", output_path)
-    return output_path
+        logger.info("Conversion complete: %s", output_path)
+        return output_path
+    except Exception:
+        # 异常时清理临时目录，避免磁盘泄漏
+        if output_dir and os.path.isdir(output_dir):
+            shutil.rmtree(output_dir, ignore_errors=True)
+        raise
 
 
 def get_supported_formats() -> list[str]:
