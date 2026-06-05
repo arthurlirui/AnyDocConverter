@@ -7,7 +7,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.storage import get_absolute_path
 from app.models.task import Task
 from app.schemas.task import TaskResponse
 
@@ -29,7 +28,7 @@ async def get_task_status(
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid task ID format")
 
-    result = await db.execute(select(Task).where(Task.id == uid))
+    result = await db.execute(select(Task).where(Task.id == str(uid)))
     task = result.scalar_one_or_none()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")

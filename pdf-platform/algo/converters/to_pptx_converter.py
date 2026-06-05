@@ -8,7 +8,6 @@ from __future__ import annotations
 import io
 import logging
 import os
-from typing import Optional
 
 import fitz  # PyMuPDF
 
@@ -34,7 +33,8 @@ def convert(file_path: str, params: ConvertParams, output_dir: str) -> str:
 
     try:
         from pptx import Presentation
-        from pptx.util import Inches, Pt, Emu
+        from pptx.util import Inches, Emu
+        from pptx.util import Pt as Pt_
         from pptx.dml.color import RGBColor
     except ImportError:
         logger.error("python-pptx not installed. pip install python-pptx")
@@ -96,7 +96,6 @@ def convert(file_path: str, params: ConvertParams, output_dir: str) -> str:
                 p = tf.paragraphs[0]
                 p.text = line_text
 
-                from pptx.util import Pt as Pt_
                 p.font.size = Pt_(font_size)
                 if font_color:
                     p.font.color.rgb = RGBColor(*color_rgb)

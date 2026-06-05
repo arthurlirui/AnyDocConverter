@@ -56,7 +56,10 @@ def convert(file_path: str, params: ConvertParams, output_dir: str) -> str:
             logger.debug("Page %d: table detection failed: %s", i, e)
             continue
 
-        for table in tables:
+        # 物化表格列表，避免多次调用 find_tables()
+        table_list = list(tables)
+
+        for table in table_list:
             sheet_count += 1
             sheet_name = f"Page{i + 1}_Table{sheet_count}"[:31]  # Excel 限制 31 字符
             ws = wb.create_sheet(title=sheet_name)
@@ -71,7 +74,7 @@ def convert(file_path: str, params: ConvertParams, output_dir: str) -> str:
                         cell.font = Font(bold=True)
 
         # 如果没有找到表格，尝试提取纯文本
-        if not list(page.find_tables()):
+        if not table_list:
             text = page.get_text("text").strip()
             if text:
                 sheet_count += 1

@@ -63,8 +63,6 @@ _FORMAT_PARAMS: dict[str, dict] = {
 }
 
 
-
-
 @router.get(
     "/params/{format_id}",
     response_model=ParamsResponse,

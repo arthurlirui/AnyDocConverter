@@ -37,7 +37,7 @@ async def download_file(
         raise HTTPException(status_code=400, detail="Invalid file ID format")
 
     # Try as a File record first
-    result = await db.execute(select(File).where(File.id == uid))
+    result = await db.execute(select(File).where(File.id == str(uid)))
     file_record = result.scalar_one_or_none()
 
     if file_record:
@@ -51,7 +51,7 @@ async def download_file(
         )
 
     # Try as a Task result
-    task_result = await db.execute(select(Task).where(Task.id == uid))
+    task_result = await db.execute(select(Task).where(Task.id == str(uid)))
     task = task_result.scalar_one_or_none()
 
     if task and task.status == "completed" and task.result_path:
