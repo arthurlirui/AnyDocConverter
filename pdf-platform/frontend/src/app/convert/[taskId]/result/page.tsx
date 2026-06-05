@@ -11,7 +11,9 @@ export default function ConvertResultPage() {
   const params = useParams();
   const router = useRouter();
   const taskId = params.taskId as string;
-  const { taskStatus, pollTask, stopPolling, phase } = useTaskStore();
+  const { taskStatus, pollTask, stopPolling, phase, uploadedFileName, file } = useTaskStore();
+  const fileName = taskStatus?.file_name || uploadedFileName || file?.name || 'file.pdf';
+  const fileSize = taskStatus?.file_size || file?.size || 0;
 
   // Poll for final status if not yet loaded
   useEffect(() => {
@@ -62,8 +64,8 @@ export default function ConvertResultPage() {
       {/* Preview / summary */}
       <section className="mb-6">
         <PreviewCompare
-          fileName={taskStatus.file_name || 'file.pdf'}
-          fileSize={taskStatus.file_size || 0}
+          fileName={fileName}
+          fileSize={fileSize}
           targetFormat={taskStatus.target_format || 'docx'}
         />
       </section>
@@ -72,8 +74,8 @@ export default function ConvertResultPage() {
       <section>
         <DownloadCard
           fileId={taskStatus.file_id || ''}
-          fileName={taskStatus.file_name || 'file.pdf'}
-          fileSize={taskStatus.file_size || 0}
+          fileName={fileName}
+          fileSize={fileSize}
           targetFormat={taskStatus.target_format || 'docx'}
           taskId={taskId}
         />

@@ -103,11 +103,11 @@ export default function ProgressDisplay({ taskId }: ProgressDisplayProps) {
       </div>
 
       {/* Error */}
-      {phase === 'failed' && taskStatus?.error && (
+      {phase === 'failed' && taskStatus?.error_message && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
           <XCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
           <p className="text-red-700 font-medium">Conversion Failed</p>
-          <p className="text-sm text-red-500 mt-1">{taskStatus.error}</p>
+          <p className="text-sm text-red-500 mt-1">{taskStatus.error_message}</p>
         </div>
       )}
 

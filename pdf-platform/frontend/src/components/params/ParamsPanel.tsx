@@ -9,16 +9,10 @@ import { ChevronDown, ChevronUp, Settings2 } from 'lucide-react';
 import { useState } from 'react';
 
 export default function ParamsPanel() {
-  const { targetFormat, paramsDefaults } = useTaskStore();
+  const { params } = useTaskStore();
   const [expanded, setExpanded] = useState(false);
 
-  if (!paramsDefaults) return null;
-
-  const hasOptions = paramsDefaults.ocr || paramsDefaults.layout;
-  const hasImageOptions = paramsDefaults.imageQuality;
-  const hasFontOptions = paramsDefaults.font;
-
-  if (!hasOptions && !hasImageOptions && !hasFontOptions) return null;
+  if (!params) return null;
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
@@ -41,30 +35,16 @@ export default function ParamsPanel() {
 
       {expanded && (
         <div className="px-5 pb-5 space-y-6 border-t border-gray-100 pt-4">
-          {hasOptions && (
-            <div className="space-y-4">
-              {paramsDefaults.ocr && <OCROptions />}
-              {paramsDefaults.layout && <LayoutOptions />}
-            </div>
-          )}
+          <div className="space-y-4">
+            <OCROptions />
+            <LayoutOptions />
+          </div>
 
-          {hasImageOptions && (
-            <div>
-              {hasOptions && (
-                <hr className="border-gray-100 mb-4" />
-              )}
-              <ImageQualityOptions />
-            </div>
-          )}
+          <hr className="border-gray-100" />
+          <ImageQualityOptions />
 
-          {hasFontOptions && (
-            <div>
-              {(hasOptions || hasImageOptions) && (
-                <hr className="border-gray-100 mb-4" />
-              )}
-              <FontOptions />
-            </div>
-          )}
+          <hr className="border-gray-100" />
+          <FontOptions />
         </div>
       )}
     </div>

@@ -73,6 +73,9 @@ export interface TaskStatus {
   error_message?: string | null;
   created_at: string;
   updated_at: string;
+  /** Optionally stored locally for display purposes */
+  file_name?: string;
+  file_size?: number;
 }
 
 export interface StartTaskRequest {

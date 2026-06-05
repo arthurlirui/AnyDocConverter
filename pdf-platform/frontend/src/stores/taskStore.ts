@@ -216,9 +216,14 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     try {
       const result = await startTask(fileId, targetFormat, params);
       const taskId = result.id;
+      const { uploadedFileName, file } = get();
       set({
         taskId,
-        taskStatus: result,
+        taskStatus: {
+          ...result,
+          file_name: result.file_name || uploadedFileName || file?.name,
+          file_size: result.file_size || file?.size,
+        },
         phase: "preparing",
         progress: 0,
         phaseMessage: "Preparing conversion...",

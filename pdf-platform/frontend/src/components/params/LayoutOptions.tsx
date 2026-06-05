@@ -2,11 +2,16 @@
 
 import { useTaskStore } from '@/stores/taskStore';
 
-const PAGE_SIZES = ['A3', 'A4', 'A5', 'Letter', 'Legal', 'Tabloid'];
-const MARGIN_OPTIONS = ['none', 'narrow', 'normal', 'wide'];
-
 export default function LayoutOptions() {
   const { params, updateParams } = useTaskStore();
+
+  const layout = params.layout || {
+    preservation: 'exact',
+    detect_tables: true,
+    detect_images: true,
+    detect_headers_footers: true,
+    reading_order: true,
+  };
 
   return (
     <div className="space-y-3">
@@ -15,44 +20,38 @@ export default function LayoutOptions() {
       <label className="flex items-center gap-3 cursor-pointer">
         <input
           type="checkbox"
-          checked={params.keepLayout}
-          onChange={(e) => updateParams({ keepLayout: e.target.checked })}
+          checked={layout.detect_tables}
+          onChange={(e) =>
+            updateParams({ layout: { ...layout, detect_tables: e.target.checked } })
+          }
           className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
         />
-        <span className="text-sm text-gray-600">Keep original layout</span>
+        <span className="text-sm text-gray-600">Detect tables</span>
       </label>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs text-gray-500 mb-1">Page Size</label>
-          <select
-            value={params.pageSize}
-            onChange={(e) => updateParams({ pageSize: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          >
-            {PAGE_SIZES.map((size) => (
-              <option key={size} value={size}>
-                {size}
-              </option>
-            ))}
-          </select>
-        </div>
+      <label className="flex items-center gap-3 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={layout.detect_images}
+          onChange={(e) =>
+            updateParams({ layout: { ...layout, detect_images: e.target.checked } })
+          }
+          className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+        />
+        <span className="text-sm text-gray-600">Extract images</span>
+      </label>
 
-        <div>
-          <label className="block text-xs text-gray-500 mb-1">Margins</label>
-          <select
-            value={params.margins}
-            onChange={(e) => updateParams({ margins: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          >
-            {MARGIN_OPTIONS.map((m) => (
-              <option key={m} value={m}>
-                {m.charAt(0).toUpperCase() + m.slice(1)}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+      <label className="flex items-center gap-3 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={layout.reading_order}
+          onChange={(e) =>
+            updateParams({ layout: { ...layout, reading_order: e.target.checked } })
+          }
+          className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+        />
+        <span className="text-sm text-gray-600">Restore reading order</span>
+      </label>
     </div>
   );
 }

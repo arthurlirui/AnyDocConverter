@@ -5,27 +5,33 @@ import { useTaskStore } from '@/stores/taskStore';
 export default function OCROptions() {
   const { params, updateParams } = useTaskStore();
 
+  const ocr = params.ocr || { enabled: false, engine: 'paddle', language: 'chi_sim', min_confidence: 0.5 };
+
   return (
     <div className="space-y-3">
       <h4 className="text-sm font-medium text-gray-700">OCR Settings</h4>
       <label className="flex items-center gap-3 cursor-pointer">
         <input
           type="checkbox"
-          checked={params.ocrEnabled}
-          onChange={(e) => updateParams({ ocrEnabled: e.target.checked })}
+          checked={ocr.enabled}
+          onChange={(e) =>
+            updateParams({ ocr: { ...ocr, enabled: e.target.checked } })
+          }
           className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
         />
         <span className="text-sm text-gray-600">Enable OCR (text recognition)</span>
       </label>
 
-      {params.ocrEnabled && (
+      {ocr.enabled && (
         <div>
           <label className="block text-xs text-gray-500 mb-1">
             OCR Language
           </label>
           <select
-            value={params.ocrLanguage}
-            onChange={(e) => updateParams({ ocrLanguage: e.target.value })}
+            value={ocr.language}
+            onChange={(e) =>
+              updateParams({ ocr: { ...ocr, language: e.target.value } })
+            }
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
             <option value="eng">English</option>

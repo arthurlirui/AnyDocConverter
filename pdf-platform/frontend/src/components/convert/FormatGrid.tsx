@@ -49,8 +49,9 @@ export default function FormatGrid() {
         const data = await fetchFormats();
         // Group formats
         const groupMap = new Map<string, FormatItem[]>();
-        for (const fmt of data) {
-          const key = fmt.group || 'document';
+        const formatList = Array.isArray(data) ? data : data.formats;
+        for (const fmt of formatList) {
+          const key = (fmt as any).group || 'document';
           if (!groupMap.has(key)) groupMap.set(key, []);
           groupMap.get(key)!.push(fmt);
         }
