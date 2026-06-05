@@ -21,6 +21,7 @@ from algo.converters import (
     convert_to_html,
     convert_to_jpg,
     convert_to_png,
+    convert_to_markdown,
 )
 
 logger = logging.getLogger(__name__)
@@ -33,6 +34,7 @@ _FORMAT_MAP = {
     "html": convert_to_html,
     "jpg": convert_to_jpg,
     "png": convert_to_png,
+    "markdown": convert_to_markdown,
 }
 
 

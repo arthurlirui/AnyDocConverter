@@ -34,7 +34,7 @@ FORMAT_MIME_TYPES: dict[str, str] = {
 }
 
 # ── Pipeline 中实际支持的转换器格式（algo/converters 中有实体实现）──
-CONVERTER_FORMATS: list[str] = ["docx", "pptx", "xlsx", "html", "jpg", "png"]
+CONVERTER_FORMATS: list[str] = ["docx", "pptx", "xlsx", "html", "jpg", "png", "markdown"]
 
 
 def get_extension(format_id: str) -> str:

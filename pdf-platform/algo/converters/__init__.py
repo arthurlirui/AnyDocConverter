@@ -4,6 +4,7 @@ from .to_xlsx_converter import convert as convert_to_xlsx
 from .to_html_converter import convert as convert_to_html
 from .to_jpg_converter import convert as convert_to_jpg
 from .to_png_converter import convert as convert_to_png
+from .to_markdown_converter import convert as convert_to_markdown
 
 __all__ = [
     "convert_to_docx",
@@ -12,4 +13,5 @@ __all__ = [
     "convert_to_html",
     "convert_to_jpg",
     "convert_to_png",
+    "convert_to_markdown",
 ]
