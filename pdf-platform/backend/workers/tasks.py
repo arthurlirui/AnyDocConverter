@@ -181,16 +181,6 @@ def perform_conversion(
 
 
 def _format_to_extension(format_id: str) -> str:
-    """Map format identifier to file extension."""
-    EXT_MAP = {
-        "docx": ".docx",
-        "xlsx": ".xlsx",
-        "pptx": ".pptx",
-        "html": ".html",
-        "markdown": ".md",
-        "txt": ".txt",
-        "png": ".png",
-        "jpg": ".jpg",
-        "pdf-edit": ".pdf",
-    }
-    return EXT_MAP.get(format_id, f".{format_id}")
+    """Map format identifier to file extension (delegates to shared algo/utils)."""
+    from algo.utils import get_extension
+    return get_extension(format_id)

@@ -108,5 +108,6 @@ def convert(
 
 
 def get_supported_formats() -> list[str]:
-    """获取支持的目标格式列表"""
-    return list(_FORMAT_MAP.keys())
+    """获取支持的转换格式列表（委派到共享 utils）"""
+    from algo.utils import get_converter_formats
+    return get_converter_formats()
