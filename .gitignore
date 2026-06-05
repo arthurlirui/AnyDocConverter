@@ -18,6 +18,11 @@ out/
 .env
 *.local
 
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
 # OS
 .DS_Store
 Thumbs.db
