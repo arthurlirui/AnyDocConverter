@@ -1,0 +1,50 @@
+# ============================================================
+# Stage 1: Build Next.js static export
+# ============================================================
+FROM node:20-alpine AS builder
+
+LABEL maintainer="devops@pdf-platform"
+LABEL description="PDF Platform — Frontend Builder"
+
+WORKDIR /app
+
+# Copy dependency manifests first for better layer caching
+COPY frontend/package.json frontend/package-lock.json* ./
+RUN npm ci
+
+# Set API base to empty (relative URLs via nginx proxy)
+ARG NEXT_PUBLIC_API_URL=
+ENV NEXT_PUBLIC_API_URL=
+
+# Copy the rest of the frontend source
+COPY frontend/ ./
+
+# Build the Next.js static export
+RUN npm run build
+
+# ============================================================
+# Stage 2: Serve static files via nginx:alpine
+# ============================================================
+FROM nginx:alpine
+
+LABEL maintainer="devops@pdf-platform"
+LABEL description="PDF Platform — Frontend (static served via nginx)"
+
+# Copy built static files from builder
+COPY --from=builder /app/out /usr/share/nginx/html
+
+# Minimal nginx config listening on port 3000 for static serving
+RUN echo 'server { \
+    listen       3000; \
+    server_name  localhost; \
+    root   /usr/share/nginx/html; \
+    index  index.html index.htm; \
+    location / { \
+        try_files $uri $uri/ /index.html; \
+    } \
+    error_page 404 /404.html; \
+}' > /etc/nginx/conf.d/default.conf
+
+EXPOSE 3000
+
+CMD ["nginx", "-g", "daemon off;"]
