@@ -25,6 +25,7 @@ COPY backend/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
 # Install additional PDF processing libraries
+# Note: pdf2docx is required by algo/converters/to_docx_converter.py.
 RUN pip install --no-cache-dir \
     pymupdf \
     python-docx \
@@ -32,6 +33,7 @@ RUN pip install --no-cache-dir \
     python-pptx \
     Pillow \
     pdf2image \
+    pdf2docx \
     pdfplumber \
     reportlab \
     weasyprint
@@ -45,9 +47,10 @@ RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple \
 COPY backend/ /app/backend/
 COPY algo/ /app/algo/
 
-# The app package lives in backend/app, but algo is at /app/algo
-# PYTHONPATH ensures both are importable
-ENV PYTHONPATH=/app/backend:/app/algo
+# The app package lives in backend/app, but algo is at /app/algo.
+# PYTHONPATH must include /app (so `import algo` resolves to /app/algo/)
+# and /app/backend (so `import app...` resolves to /app/backend/app/...).
+ENV PYTHONPATH=/app:/app/backend
 
 EXPOSE 8000
 

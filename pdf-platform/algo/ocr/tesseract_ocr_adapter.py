@@ -5,7 +5,6 @@ Tesseract OCR 适配器
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 from PIL import Image
 
@@ -22,7 +21,7 @@ class TesseractOCRAdapter:
         self._available = None
 
     def _check_available(self) -> bool:
-        """检查 Tesseract 是否可用"""
+        """检查 Tesseract 是否可用（结果缓存，避免重复探测）。"""
         if self._available is not None:
             return self._available
         try:
@@ -68,16 +67,20 @@ class TesseractOCRAdapter:
         n = len(data.get("text", []))
         for i in range(n):
             text = data["text"][i].strip()
-            conf_str = data.get("conf", [""])[i]
             if not text:
                 continue
 
+            conf_str = data.get("conf", [""])[i]
             try:
                 confidence = float(conf_str) / 100.0
             except (ValueError, TypeError):
                 confidence = 0.0
 
-            if confidence < 0 or confidence < self.params.min_confidence:
+            # Tesseract 用 conf=-1 表示“无置信度信息 / 占位项”，
+            # 应直接丢弃，而不是当作 0 置信度参与过滤。
+            if confidence < 0:
+                continue
+            if confidence < self.params.min_confidence:
                 continue
 
             x = data.get("left", [0])[i]

@@ -1,3 +1,11 @@
+"""FastAPI application entrypoint.
+
+Assembles the app, wires CORS, mounts every API router under ``/api/v1``,
+and exposes ``/health`` for liveness checks. Database tables and the upload
+directory are created lazily in the lifespan startup hook so the app can
+boot even when the worker (which imports this module for task definitions)
+is the one actually running.
+"""
 from __future__ import annotations
 
 from contextlib import asynccontextmanager

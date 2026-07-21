@@ -1,6 +1,6 @@
 'use client';
 
-import { FileText, Download, ArrowLeftRight, CheckCircle2 } from 'lucide-react';
+import { FileText, ArrowLeftRight, CheckCircle2 } from 'lucide-react';
 
 interface PreviewCompareProps {
   fileName: string;

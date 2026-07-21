@@ -24,7 +24,8 @@ WORKDIR /app
 COPY backend/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# Install additional PDF processing libraries + Celery with Redis transport
+# Install additional PDF processing libraries + Celery with Redis transport.
+# Note: pdf2docx is required by algo/converters/to_docx_converter.py.
 RUN pip install --no-cache-dir \
     pymupdf \
     python-docx \
@@ -32,6 +33,7 @@ RUN pip install --no-cache-dir \
     python-pptx \
     Pillow \
     pdf2image \
+    pdf2docx \
     pdfplumber \
     reportlab \
     weasyprint \
@@ -46,8 +48,15 @@ RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple \
 COPY backend/ /app/backend/
 COPY algo/ /app/algo/
 
-# PYTHONPATH ensures both backend and algo are importable
-ENV PYTHONPATH=/app/backend:/app/algo
+# PYTHONPATH must include /app (so `import algo` resolves to /app/algo/)
+# and /app/backend (so `import app...` resolves to /app/backend/app/...).
+ENV PYTHONPATH=/app:/app/backend
 
-# Celery worker entry point (assumes workers module has celery app in backend/workers/)
-CMD ["celery", "-A", "workers.celery", "worker", "--loglevel=info", "--concurrency=2"]
+# Celery worker entry point.
+# - `-A workers.celery:celery_app` explicitly targets the Celery instance
+#   (the attribute is named `celery_app`, not the default `app`/`celery`).
+# - `-Q conversions,pdf-platform-default` subscribes to both the routed
+#   conversion queue and the default queue; without this the worker only
+#   listens on the implicit `celery` queue and never receives tasks
+#   (see backend/workers/celery.py task_routes).
+CMD ["celery", "-A", "workers.celery:celery_app", "worker", "-Q", "conversions,pdf-platform-default", "--loglevel=info", "--concurrency=2"]

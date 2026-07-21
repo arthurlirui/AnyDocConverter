@@ -5,7 +5,7 @@ install: install-backend install-frontend install-algo
 
 install-backend:
 	@cd backend && pip install -r requirements.txt 2>/dev/null; \
-	pip install pymupdf python-docx openpyxl python-pptx Pillow pdf2image 2>/dev/null
+	pip install pymupdf python-docx openpyxl python-pptx Pillow pdf2image pdf2docx 2>/dev/null
 	@echo "✅ Backend dependencies installed"
 
 install-frontend:

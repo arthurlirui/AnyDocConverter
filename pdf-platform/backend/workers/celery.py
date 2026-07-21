@@ -1,3 +1,13 @@
+"""Celery application and task routing configuration.
+
+Queue topology:
+  - `pdf-platform-default` (task_default_queue): catches any unrouted task.
+  - `conversions`: receives `workers.tasks.perform_conversion` (see task_routes).
+
+The worker **must** subscribe to both queues via `-Q conversions,pdf-platform-default`.
+If started without `-Q`, Celery only listens on the implicit `celery` queue and
+conversion tasks will never be picked up. See `infra/Dockerfile.worker` CMD.
+"""
 from __future__ import annotations
 
 from celery import Celery

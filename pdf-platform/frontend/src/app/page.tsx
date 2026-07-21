@@ -16,7 +16,6 @@ export default function HomePage() {
     isUploading,
     targetFormat,
     createAndStartTask,
-    phase,
   } = useTaskStore();
   const [starting, setStarting] = useState(false);
 

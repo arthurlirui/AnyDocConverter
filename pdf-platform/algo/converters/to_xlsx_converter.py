@@ -1,6 +1,11 @@
 """
-PDF → XLSX 转换器
-使用 PyMuPDF 表格检测 + openpyxl 写入
+PDF → XLSX 转换器。
+
+策略：
+1. 用 PyMuPDF 的 ``find_tables`` 检测每页表格；
+2. 每个表格写入一个 sheet（命名 ``PageN_TableM``，受 Excel 31 字符限制）；
+3. 没有表格的页面回退为纯文本（每行一个单元格）；
+4. 整份文档都没有内容时生成一张占位 sheet。
 """
 
 from __future__ import annotations
@@ -17,15 +22,15 @@ logger = logging.getLogger(__name__)
 
 
 def convert(file_path: str, params: ConvertParams, output_dir: str) -> str:
-    """PDF → XLSX 转换
+    """PDF → XLSX 转换。
 
-    策略:
-    1. 用 PyMuPDF 的 find_tables 检测表格
-    2. 每个表格写入一个 sheet
-    3. 如果多页有表格，按页名命名 sheet
+    Args:
+        file_path: 源 PDF 文件路径。
+        params: 转换参数（使用 start_page / end_page）。
+        output_dir: 输出目录（不存在会自动创建）。
 
     Returns:
-        输出 .xlsx 文件路径
+        输出 .xlsx 文件路径。
     """
     os.makedirs(output_dir, exist_ok=True)
     base_name = os.path.splitext(os.path.basename(file_path))[0]
@@ -45,6 +50,13 @@ def convert(file_path: str, params: ConvertParams, output_dir: str) -> str:
 
     start = params.start_page
     end = params.end_page if params.end_page is not None else doc.page_count - 1
+    # 限定 end 在合法范围内，避免越界 IndexError
+    end = min(end, doc.page_count - 1)
+    if start > end:
+        doc.close()
+        raise ValueError(
+            f"Invalid page range: start_page={start} > end_page={end}"
+        )
     sheet_count = 0
 
     for i in range(start, end + 1):
@@ -93,3 +105,4 @@ def convert(file_path: str, params: ConvertParams, output_dir: str) -> str:
     wb.save(output_path)
     logger.info("XLSX conversion done: %s", output_path)
     return output_path
+

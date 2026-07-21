@@ -115,19 +115,36 @@ def perform_conversion(
         if not abs_path.exists():
             raise FileNotFoundError(f"Source file not found: {abs_path}")
 
-        # Create output directory and call the conversion pipeline
-        output_dir = tempfile.mkdtemp(prefix="pdf_convert_")
-        output_path: str = converter(
-            file_path=str(abs_path),
-            target_format=target_format,
-            params=params,
-            output_dir=output_dir,
-        )
+        # Create output directory and call the conversion pipeline.
+        # algo.pipeline.convert expects a ConvertParams instance (or None),
+        # so coerce the JSON-serializable dict back into the typed model.
+        from algo.models.params import ConvertParams as AlgoParams
 
-        # Read the output file
-        import os
-        with open(output_path, "rb") as f:
-            output_bytes = f.read()
+        algo_params: Optional[AlgoParams]
+        try:
+            algo_params = AlgoParams(**(params or {}))
+        except Exception:
+            # If the payload includes unknown keys, fall back to defaults.
+            algo_params = AlgoParams()
+
+        output_dir = tempfile.mkdtemp(prefix="pdf_convert_")
+        try:
+            output_path: str = converter(
+                file_path=str(abs_path),
+                target_format=target_format,
+                params=algo_params,
+                output_dir=output_dir,
+            )
+
+            # Read the output file
+            import os
+            with open(output_path, "rb") as f:
+                output_bytes = f.read()
+        finally:
+            # 清理临时输出目录。algo.pipeline 在异常时已经清理自己创建的目录，
+            # 但 worker 这里调用的是 abs_path 传入的 mkdtemp 目录，仍需兜底。
+            import shutil
+            shutil.rmtree(output_dir, ignore_errors=True)
 
         ext = _format_to_extension(target_format)
         result_filename = f"converted_{task_id[:8]}{ext}"

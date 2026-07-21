@@ -4,10 +4,6 @@ import type {
   ConvertParams,
   TaskStatus,
   ConversionPhase,
-  OCRParams,
-  LayoutParams,
-  ImageParams,
-  FontParams,
 } from "@/types";
 import {
   uploadFile,
@@ -63,28 +59,35 @@ function defaultParams(): ConvertParams {
     ocr: {
       enabled: false,
       engine: "paddle",
-      language: "chi_sim",
-      min_confidence: 0.5,
+      language: "ch",
+      min_confidence: 0.45,
+      enhance_image: false,
+      enhance_mode: "standard",
+      upscale_factor: 1.0,
+      contrast: 1.15,
+      sharpness: 1.05,
+      binarize: false,
     },
     layout: {
-      preservation: "exact",
       detect_tables: true,
       detect_images: true,
       detect_headers_footers: true,
       reading_order: true,
     },
     image: {
-      dpi: 300,
-      compression: "jpeg",
-      quality: 95,
-      color_space: "rgb",
+      dpi: 150,
+      quality: 85,
+      max_width: null,
+      max_height: null,
     },
     font: {
-      mode: "approximate",
-      fallback_font: "NotoSansCJK",
+      fallback_font: "Noto Sans CJK SC",
       embed_fonts: true,
-      subset_fonts: true,
+      preserve_size: true,
     },
+    output_format: "docx",
+    start_page: 0,
+    end_page: null,
   };
 }
 
@@ -123,6 +126,7 @@ interface TaskStore {
   pollInterval: ReturnType<typeof setInterval> | null;
   createAndStartTask: () => Promise<string | null>;
   pollTask: (taskId: string) => Promise<void>;
+  startPolling: (taskId: string) => void;
   stopPolling: () => void;
 
   // Reset
@@ -216,25 +220,27 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     try {
       const result = await startTask(fileId, targetFormat, params);
       const taskId = result.id;
+      // file_name / file_size are frontend-only display fields (the backend
+      // does not return them on TaskResponse). Populate from the locally
+      // known upload so the result page can render the original file info
+      // even after a refresh — when uploadedFileName/file are null, the
+      // result page falls back to its own placeholder.
       const { uploadedFileName, file } = get();
       set({
         taskId,
         taskStatus: {
           ...result,
-          file_name: result.file_name || uploadedFileName || file?.name,
-          file_size: result.file_size || file?.size,
+          file_name: uploadedFileName || file?.name,
+          file_size: file?.size,
         },
         phase: "preparing",
         progress: 0,
         phaseMessage: "Preparing conversion...",
       });
-      // Start polling
-      get().stopPolling();
-      const interval = setInterval(async () => {
-        await get().pollTask(taskId);
-      }, 1500);
-      set({ pollInterval: interval });
-      // Immediate first poll
+      // Start polling. startPolling clears any existing interval first so
+      // we never end up with two intervals running concurrently.
+      get().startPolling(taskId);
+      // Immediate first poll (the interval fires after the first delay).
       await get().pollTask(taskId);
       return taskId;
     } catch (e: any) {
@@ -250,10 +256,21 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       const status = await fetchTaskStatus(taskId);
       const phase = phaseFromStatus(status.status, status.progress);
       const msg = phaseMessage(phase, status.progress);
+      // Backend reports progress as 0.0–1.0; UI bars/labels expect 0–100.
+      const progressPct = Math.round((status.progress ?? 0) * 100);
+      // Preserve the frontend-only display fields across polls — the backend
+      // does not return file_name/file_size, so without this the result page
+      // would lose the original-file info after the first poll overwrites
+      // taskStatus.
+      const prev = get().taskStatus;
       set({
-        taskStatus: status,
+        taskStatus: {
+          ...status,
+          file_name: prev?.file_name,
+          file_size: prev?.file_size,
+        },
         phase,
-        progress: status.progress,
+        progress: progressPct,
         phaseMessage: msg,
       });
 
@@ -266,6 +283,14 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     } catch {
       // continue polling
     }
+  },
+  startPolling: (taskId) => {
+    // Clear any existing interval first so we never run two at once.
+    get().stopPolling();
+    const interval = setInterval(() => {
+      void get().pollTask(taskId);
+    }, 1500);
+    set({ pollInterval: interval });
   },
   stopPolling: () => {
     const { pollInterval } = get();

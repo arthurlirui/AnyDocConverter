@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.convert import _build_task_result
 from app.core.database import get_db
 from app.models.task import Task
 from app.schemas.task import TaskResponse
@@ -33,22 +34,13 @@ async def get_task_status(
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
-    # Build result dict based on status
-    task_result = None
-    if task.status == "completed" and task.result_path and task.result_filename:
-        task_result = {
-            "file_id": str(task.id),
-            "filename": task.result_filename,
-            "path": task.result_path,
-        }
-
     return TaskResponse(
         id=str(task.id),
         file_id=str(task.file_id),
         target_format=task.target_format,
         status=task.status,
         progress=task.progress,
-        result=task_result,
+        result=_build_task_result(task),
         error_message=task.error_message,
         created_at=task.created_at,
         updated_at=task.updated_at,

@@ -1,3 +1,15 @@
+"""``GET /formats`` — supported target format catalog.
+
+Returns a static list of :class:`FormatInfo` for the frontend format picker.
+The list is intentionally decoupled from :data:`algo.utils.CONVERTER_FORMATS`
+so the UI can advertise formats that are *planned but not yet implemented*
+(currently ``pdf-edit``). Selecting such a format will fail at the conversion
+step with an "unsupported format" error from the pipeline — see the
+"Known limitations" section of the top-level README.
+
+When you add a real converter, add its :class:`FormatInfo` here **and**
+register it in :data:`algo.pipeline._FORMAT_MAP`.
+"""
 from __future__ import annotations
 
 from fastapi import APIRouter
@@ -9,6 +21,8 @@ router = APIRouter()
 
 # Known conversion formats — extensible; consumers can also fetch from algo.
 # When the algo module is integrated, this can be replaced with a dynamic query.
+# NOTE: `pdf-edit` is advertised to the UI but has NO converter implementation
+# in algo/pipeline.py — selecting it produces a runtime ValueError. See README.
 _KNOWN_FORMATS = [
     FormatInfo(
         id="docx",
@@ -46,7 +60,7 @@ _KNOWN_FORMATS = [
         id="markdown",
         name="Markdown",
         icon="📝",
-        description="Markdown text (.md)",
+        description="Editable Markdown text (.md), supports PaddleOCR for scanned PDFs/images",
         target_ext=".md",
         mime_type="text/markdown",
     ),
@@ -54,7 +68,7 @@ _KNOWN_FORMATS = [
         id="txt",
         name="Plain Text",
         icon="🔤",
-        description="Plain text file (.txt)",
+        description="Editable plain text (.txt), supports PaddleOCR for scanned PDFs/images",
         target_ext=".txt",
         mime_type="text/plain",
     ),

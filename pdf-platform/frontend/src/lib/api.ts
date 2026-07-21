@@ -91,7 +91,12 @@ export async function fetchFormatParams(
 
 /**
  * POST /api/v1/convert — Create and start a conversion task in one step.
- * This is the main frontend-facing endpoint.
+ *
+ * This is the main frontend-facing endpoint. Returns the freshly-created
+ * task with `status: "queued"` (or `"failed"` if the broker was unreachable).
+ * The response is a `TaskResponse`; note that `file_name` / `file_size` on
+ * the frontend `TaskStatus` type are NOT populated by the backend — the
+ * store fills them from the locally known upload (see taskStore).
  */
 export async function startTask(
   fileId: string,
@@ -119,7 +124,13 @@ export async function fetchTaskStatus(id: string): Promise<TaskStatus> {
 }
 
 /**
- * GET /api/v1/download/{file_id} — Get download URL.
+ * Build the download URL for a conversion result.
+ *
+ * The backend `GET /api/v1/download/{file_id}` endpoint serves the file
+ * directly (binary FileResponse), accepting either a File id or a Task id.
+ * The frontend passes the Task id (see result/page.tsx). This function only
+ * constructs the URL string — the actual download happens when the browser
+ * navigates to it via an `<a href download>` click.
  */
 export function getDownloadUrl(fileId: string): string {
   return apiUrl(`/api/v1/download/${fileId}`);
