@@ -2,12 +2,10 @@
 
 import { useTaskStore } from '@/stores/taskStore';
 
-const COLOR_MODES = ['rgb', 'cmyk', 'grayscale'];
-
 export default function ImageQualityOptions() {
   const { params, updateParams } = useTaskStore();
 
-  const image = params.image || { dpi: 300, compression: 'jpeg', quality: 95, color_space: 'rgb' };
+  const image = params.image || { dpi: 150, quality: 85, max_width: null, max_height: null };
 
   return (
     <div className="space-y-3">
@@ -55,20 +53,22 @@ export default function ImageQualityOptions() {
         </div>
 
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Color Mode</label>
-          <select
-            value={image.color_space}
+          <label className="block text-xs text-gray-500 mb-1">Max Width (px)</label>
+          <input
+            type="number"
+            min={1}
+            placeholder="Auto"
+            value={image.max_width ?? ''}
             onChange={(e) =>
-              updateParams({ image: { ...image, color_space: e.target.value } })
+              updateParams({
+                image: {
+                  ...image,
+                  max_width: e.target.value ? parseInt(e.target.value) : null,
+                },
+              })
             }
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          >
-            {COLOR_MODES.map((mode) => (
-              <option key={mode} value={mode}>
-                {mode.toUpperCase()}
-              </option>
-            ))}
-          </select>
+          />
         </div>
       </div>
     </div>

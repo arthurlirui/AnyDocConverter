@@ -1,8 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useTaskStore } from '@/stores/taskStore';
-import { useRouter } from 'next/navigation';
 import { Loader2, CheckCircle2, XCircle, FileText } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -14,23 +12,8 @@ const PHASE_STEPS = [
   { key: 'completed', label: 'Done', icon: CheckCircle2 },
 ] as const;
 
-interface ProgressDisplayProps {
-  taskId: string;
-}
-
-export default function ProgressDisplay({ taskId }: ProgressDisplayProps) {
+export default function ProgressDisplay() {
   const { phase, progress, phaseMessage, taskStatus } = useTaskStore();
-  const router = useRouter();
-
-  // Auto-redirect to result on completion
-  useEffect(() => {
-    if (phase === 'completed' && taskStatus?.file_id) {
-      const timer = setTimeout(() => {
-        router.push(`/convert/${taskId}/result`);
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [phase, taskStatus, taskId, router]);
 
   const currentStepIndex = PHASE_STEPS.findIndex((s) => s.key === phase);
 

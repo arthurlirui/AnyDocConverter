@@ -32,3 +32,12 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
+*.pdf
+*.docx
+*.html
+*.txt
+*.png
+*.jpg
+*.md
+*.pptx
+*.xlsx

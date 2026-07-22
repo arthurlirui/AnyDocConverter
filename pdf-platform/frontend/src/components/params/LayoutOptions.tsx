@@ -6,7 +6,6 @@ export default function LayoutOptions() {
   const { params, updateParams } = useTaskStore();
 
   const layout = params.layout || {
-    preservation: 'exact',
     detect_tables: true,
     detect_images: true,
     detect_headers_footers: true,
