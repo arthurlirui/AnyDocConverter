@@ -35,8 +35,13 @@ from algo.converters import (
     convert_to_markdown,
     convert_to_txt,
 )
+from algo.parsers import parse_document
+from algo.generators import generate_docx, generate_pptx, generate_html, generate_markdown
 
 logger = logging.getLogger(__name__)
+
+# 结构化流水线支持的格式（走 Parse → IR → Generate 路径）
+_STRUCTURE_FORMATS = {"docx", "pptx", "html", "markdown"}
 
 # 格式到转换函数的映射。新增格式时：
 #   1. 在 algo/converters/ 下实现 to_{format}_converter.convert；
@@ -120,6 +125,24 @@ def convert(
         else:
             logger.info("PDF input detected; delegating to %s converter", target_format)
 
+        # ── 结构化流水线路径 ──────────────────────────────────────
+        # 对 DOCX / PPTX 格式，优先走 Parse → IR → Generate 架构：
+        # 精确版面解析 + 中间表示 + 语义化生成，提供更高质量的
+        # 可编辑文档输出。回退到旧 converter 保证兼容性。
+        if target_format in _STRUCTURE_FORMATS:
+            try:
+                output_path = _convert_via_structure_pipeline(
+                    file_path, target_format, params, output_dir
+                )
+                logger.info("Conversion complete (structured): %s", output_path)
+                return output_path
+            except Exception as e:
+                logger.warning(
+                    "Structured pipeline failed for %s, falling back to legacy converter: %s",
+                    target_format, e,
+                )
+
+        # ── 旧转换器路径（fallback + 非结构化格式） ───────────────
         # 阶段 2: 调用具体转换器（转换器内部按需执行解析 / OCR / 版式转换）
         converter_fn = _FORMAT_MAP[target_format]
         output_path = converter_fn(file_path, params, output_dir)
@@ -137,4 +160,48 @@ def get_supported_formats() -> list[str]:
     """获取支持的转换格式列表（委派到共享 utils）。"""
     from algo.utils import get_converter_formats
     return get_converter_formats()
+
+
+def _convert_via_structure_pipeline(
+    file_path: str,
+    target_format: str,
+    params: ConvertParams,
+    output_dir: str,
+) -> str:
+    """结构化转换路径：Parse → DocumentModel → Generate。
+
+    对 DOCX / PPTX / HTML / Markdown 格式提供端到端文档重建：
+    1. 解析 PDF/图片为结构化 DocumentModel（版面分析 + OCR + 阅读顺序）
+    2. 从 DocumentModel 生成目标格式（语义化 DOCX、定位 PPTX、
+       结构化 HTML、或 GFM Markdown）
+
+    失败时由调用方回退到旧转换器。
+    """
+    import os
+
+    base_name = os.path.splitext(os.path.basename(file_path))[0]
+
+    # Markdown 用 .md 扩展名
+    ext = "md" if target_format == "markdown" else target_format
+    output_path = os.path.join(output_dir, f"{base_name}.{ext}")
+
+    # 阶段 1: 解析
+    model = parse_document(file_path, params)
+
+    if not model.pages:
+        raise ValueError("Parser produced no pages — source may be empty or unreadable")
+
+    # 阶段 2: 生成
+    if target_format == "docx":
+        generate_docx(model, output_path, params)
+    elif target_format == "pptx":
+        generate_pptx(model, output_path, params)
+    elif target_format == "html":
+        generate_html(model, output_path, params)
+    elif target_format == "markdown":
+        generate_markdown(model, output_path, params)
+    else:
+        raise ValueError(f"Structure pipeline does not support: {target_format}")
+
+    return output_path
 
